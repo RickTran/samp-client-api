@@ -5,6 +5,7 @@ pub mod packets;
 pub mod players;
 pub mod v037;
 pub mod v037r3;
+pub mod v038;
 pub mod version;
 
 use version::{Version, version};
@@ -61,6 +62,19 @@ pub enum Gamestate {
     Restarting,
 }
 
+impl From<v038::Gamestate> for Gamestate {
+    fn from(state: v038::Gamestate) -> Gamestate {
+        match state {
+            v038::Gamestate::None => Gamestate::None,
+            v038::Gamestate::WaitConnect => Gamestate::WaitConnect,
+            v038::Gamestate::Connecting => Gamestate::Connecting,
+            v038::Gamestate::Connected => Gamestate::Connected,
+            v038::Gamestate::AwaitJoin => Gamestate::AwaitJoin,
+            v038::Gamestate::Restarting => Gamestate::Restarting,
+        }
+    }
+}
+
 impl From<v037r3::Gamestate> for Gamestate {
     fn from(state: v037r3::Gamestate) -> Gamestate {
         match state {
@@ -97,6 +111,12 @@ pub fn gamestate() -> Gamestate {
 
         Version::V037R3 => {
             v037r3::CNetGame::get()
+                .map(|netgame| netgame.gamestate().into())
+                .unwrap_or(Gamestate::None)
+        }
+        
+        Version::V038 => {
+            v038::CNetGame::get()
                 .map(|netgame| netgame.gamestate().into())
                 .unwrap_or(Gamestate::None)
         }

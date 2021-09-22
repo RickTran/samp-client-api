@@ -12,6 +12,7 @@ pub enum Version {
     V037,
     V037R2, // also unsupported
     V037R3,
+    V038,
     Unknown,
 }
 
@@ -57,6 +58,7 @@ pub fn version() -> Version {
             let version = match (major, minor, rc) {
                 (3, 7, 0) => Version::V037,
                 (3, 7, 2) => Version::V037R3,
+                (3, 8, 0) => Version::V038,
                 _ => Version::Unknown,
             };
 

@@ -1,7 +1,7 @@
 use std::ptr::NonNull;
 use std::net::SocketAddr;
 
-use super::{v037, v037r3};
+use super::{v037, v037r3, v038};
 use super::version::{Version, version};
 use detour::GenericDetour;
 use crate::samp::Gamestate;
@@ -9,6 +9,7 @@ use crate::samp::Gamestate;
 pub struct NetGame<'a> {
     netgame_v1: Option<&'a mut v037::CNetGame>,
     netgame_v3: Option<&'a mut v037r3::CNetGame>,
+    netgame_v38: Option<&'a mut v038::CNetGame>,
 }
 
 impl<'a> NetGame<'a> {
@@ -17,11 +18,19 @@ impl<'a> NetGame<'a> {
             Version::V037 => NetGame {
                 netgame_v1: v037::CNetGame::get(),
                 netgame_v3: None,
+                netgame_v38: None,
             },
 
             Version::V037R3 => NetGame {
                 netgame_v1: None,
                 netgame_v3: v037r3::CNetGame::get(),
+                netgame_v38: None, 
+            },
+
+            Version::V037R3 => NetGame {
+                netgame_v1: None,
+                netgame_v3: None,
+                netgame_v38: v038::CNetGame::get(), 
             },
 
             _ => panic!("Unknown SA:MP version"),
@@ -32,6 +41,7 @@ impl<'a> NetGame<'a> {
         match version() {
             Version::V037 => self.netgame_v1.as_ref().and_then(|netgame| netgame.addr()),
             Version::V037R3 => self.netgame_v3.as_ref().and_then(|netgame| netgame.addr()),
+            Version::V038 => self.netgame_v38.as_ref().and_then(|netgame| netgame.addr()),
             _ => None,
         }
     }
@@ -40,6 +50,7 @@ impl<'a> NetGame<'a> {
         let address = match version() {
             Version::V037 => 0x9380,
             Version::V037R3 => 0x9510,
+            Version::V038 => 0x9570,
             _ => return,
         };
 
@@ -63,6 +74,7 @@ impl<'a> NetGame<'a> {
         let address = match version() {
             Version::V037 => 0xA060,
             Version::V037R3 => 0xA1E0,
+            Version::V038 => 0xA230,
             _ => return,
         };
 

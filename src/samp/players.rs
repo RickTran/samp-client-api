@@ -1,5 +1,5 @@
 use super::version::{version, Version};
-use super::{v037 as r1, v037r3 as r3};
+use super::{v037 as r1, v037r3 as r3, v038 as v38};
 use crate::gta::matrix::{CVector, RwMatrix};
 
 #[repr(C, packed)]
@@ -11,6 +11,7 @@ pub struct GamePed {
 pub struct LocalPlayer<'a> {
     player_v1: Option<&'a mut r1::CLocalPlayer>,
     player_v3: Option<&'a mut r3::CLocalPlayer>,
+    player_v38: Option<&'a mut v38::CLocalPlayer>,
 }
 
 impl<'a> LocalPlayer<'a> {
@@ -20,6 +21,10 @@ impl<'a> LocalPlayer<'a> {
         }
 
         if let Some(player) = self.player_v3.as_ref() {
+            return player.matrix();
+        }
+        
+        if let Some(player) = self.player_v38.as_ref() {
             return player.matrix();
         }
 
@@ -35,6 +40,11 @@ impl<'a> LocalPlayer<'a> {
             return player.ped_position();
         }
 
+        if let Some(player) = self.player_v38.as_ref() {
+            return player.ped_position();
+        }
+        
+
         CVector::zero()
     }
 
@@ -44,6 +54,10 @@ impl<'a> LocalPlayer<'a> {
         }
 
         if let Some(player) = self.player_v3.as_ref() {
+            return player.velocity();
+
+        }
+        if let Some(player) = self.player_v38.as_ref() {
             return player.velocity();
         }
 
@@ -59,6 +73,11 @@ impl<'a> LocalPlayer<'a> {
             return player.name();
         }
 
+        if let Some(player) = self.player_v38.as_ref() {
+            return player.name();
+        }
+
+
         None
     }
 
@@ -68,6 +87,10 @@ impl<'a> LocalPlayer<'a> {
         }
 
         if let Some(player) = self.player_v3.as_ref() {
+            return player.id();
+        }
+
+        if let Some(player) = self.player_v38.as_ref() {
             return player.id();
         }
 
@@ -82,6 +105,9 @@ impl<'a> LocalPlayer<'a> {
         if let Some(player) = self.player_v3.as_ref() {
             return unsafe { (*player.m_pPed).m_pGamePed as *mut _ };
         }
+        if let Some(player) = self.player_v38.as_ref() {
+            return unsafe { (*player.m_pPed).m_pGamePed as *mut _ };
+        }
 
         std::ptr::null()
     }
@@ -90,11 +116,13 @@ impl<'a> LocalPlayer<'a> {
 pub struct PlayerPool<'a> {
     pool_v1: Option<&'a mut r1::CPlayerPool>,
     pool_v3: Option<&'a mut r3::CPlayerPool>,
+    pool_v38: Option<&'a mut v38::CPlayerPool>,
 }
 
 pub struct Player<'a> {
     player_v1: Option<&'a r1::CPlayerInfo>,
     player_v3: Option<&'a r3::CPlayerInfo>,
+    player_v38: Option<&'a v38::CPlayerInfo>,
 }
 
 impl<'a> Player<'a> {
@@ -111,6 +139,14 @@ impl<'a> Player<'a> {
             player_v1: None,
         }
     }
+    
+    fn new_v38(player: &'a r3::CPlayerInfo) -> Player<'a> {
+        Player {
+            player_v38: Some(player),
+            player_v3: None,
+            player_v1: None,
+        }
+    }
 
     pub fn remote_player(&self) -> Option<RemotePlayer> {
         Some(RemotePlayer {
@@ -122,6 +158,10 @@ impl<'a> Player<'a> {
                 .player_v3
                 .as_ref()
                 .and_then(|player| player.remote_player()),
+            remote_v38: self
+                .player_v38
+                .as_ref()
+                .and_then(|player| player.remote_player()),
         })
     }
 
@@ -131,6 +171,10 @@ impl<'a> Player<'a> {
         }
 
         if let Some(player) = self.player_v3.as_ref() {
+            return player.gta_ped();
+        }
+
+        if let Some(player) = self.player_v38.as_ref() {
             return player.gta_ped();
         }
 
@@ -146,6 +190,10 @@ impl<'a> Player<'a> {
             return player.is_in_stream();
         }
 
+        if let Some(player) = self.player_v38.as_ref() {
+            return player.is_in_stream();
+        }
+
         false
     }
 
@@ -155,6 +203,10 @@ impl<'a> Player<'a> {
         }
 
         if let Some(player) = self.player_v3.as_ref() {
+            return player.hash();
+        }
+
+        if let Some(player) = self.player_v38.as_ref() {
             return player.hash();
         }
 
@@ -170,6 +222,10 @@ impl<'a> Player<'a> {
             return player.name();
         }
 
+        if let Some(player) = self.player_v38.as_ref() {
+            return player.name();
+        }
+
         None
     }
 
@@ -182,6 +238,10 @@ impl<'a> Player<'a> {
             return player.name_with_id();
         }
 
+        if let Some(player) = self.player_v38.as_ref() {
+            return player.name_with_id();
+        }
+
         "[ID: -1] noname".to_string()
     }
 }
@@ -189,6 +249,7 @@ impl<'a> Player<'a> {
 pub struct RemotePlayer<'a> {
     remote_v1: Option<&'a r1::CRemotePlayer>,
     remote_v3: Option<&'a r3::CRemotePlayer>,
+    remote_v38: Option<&'a v38::CRemotePlayer>,
 }
 
 impl<'a> RemotePlayer<'a> {
@@ -198,6 +259,9 @@ impl<'a> RemotePlayer<'a> {
         }
 
         if let Some(remote) = self.remote_v3.as_ref() {
+            return remote.matrix();
+        }
+        if let Some(remote) = self.remote_v38.as_ref() {
             return remote.matrix();
         }
 
@@ -210,6 +274,9 @@ impl<'a> RemotePlayer<'a> {
         }
 
         if let Some(remote) = self.remote_v3.as_ref() {
+            return remote.ped_position();
+        }
+        if let Some(remote) = self.remote_v38.as_ref() {
             return remote.ped_position();
         }
 
@@ -225,6 +292,10 @@ impl<'a> RemotePlayer<'a> {
             return remote.velocity();
         }
 
+        if let Some(remote) = self.remote_v38.as_ref() {
+            return remote.velocity();
+        }
+
         CVector::zero()
     }
 
@@ -234,6 +305,10 @@ impl<'a> RemotePlayer<'a> {
         }
 
         if let Some(remote) = self.remote_v3.as_ref() {
+            return remote.head_direction();
+        }
+
+        if let Some(remote) = self.remote_v38.as_ref() {
             return remote.head_direction();
         }
 
@@ -249,6 +324,10 @@ impl<'a> RemotePlayer<'a> {
             return remote.id();
         }
 
+        if let Some(remote) = self.remote_v38.as_ref() {
+            return remote.id();
+        }
+
         u16::max_value()
     }
 }
@@ -258,10 +337,17 @@ pub fn local_player<'a>() -> Option<LocalPlayer<'a>> {
         Version::V037 => Some(LocalPlayer {
             player_v1: r1::local_player(),
             player_v3: None,
+            player_v38: None,
         }),
         Version::V037R3 => Some(LocalPlayer {
             player_v1: None,
             player_v3: r3::local_player(),
+            player_v38: None,
+        }),
+        Version::V038 => Some(LocalPlayer {
+            player_v1: None,
+            player_v3: None,
+            player_v38: v38::local_player(),
         }),
         _ => None,
     }
@@ -272,10 +358,17 @@ pub fn find_player<'a>(id: i32) -> Option<Player<'a>> {
         Version::V037 => Some(Player {
             player_v1: r1::find_player(id),
             player_v3: None,
+            player_v38: None,
         }),
         Version::V037R3 => Some(Player {
             player_v1: None,
             player_v3: r3::find_player(id),
+            player_v38: None,
+        }),
+        Version::V038 => Some(Player {
+            player_v1: None,
+            player_v3: None,
+            player_v38: v38::find_player(id),
         }),
         _ => None,
     }
@@ -286,12 +379,21 @@ pub fn players<'a>() -> Option<PlayersIterator<'a>> {
         Version::V037 => Some(PlayersIterator {
             players_v1: r1::player_pool().map(|pool| pool.m_pObject.as_mut()),
             players_v3: None,
+            players_v38: None,
             index: 0,
         }),
 
         Version::V037R3 => Some(PlayersIterator {
             players_v3: r3::player_pool().map(|pool| pool.m_pObject.as_mut()),
             players_v1: None,
+            players_v38: None,
+            index: 0,
+        }),
+
+        Version::V038 => Some(PlayersIterator {
+            players_v38: v38::player_pool().map(|pool| pool.m_pObject.as_mut()),
+            players_v1: None,
+            players_v3: None,
             index: 0,
         }),
 
@@ -302,6 +404,7 @@ pub fn players<'a>() -> Option<PlayersIterator<'a>> {
 pub struct PlayersIterator<'a> {
     players_v1: Option<&'a mut [*mut r1::CPlayerInfo]>,
     players_v3: Option<&'a mut [*mut r3::CPlayerInfo]>,
+    players_v38: Option<&'a mut [*mut v38::CPlayerInfo]>,
     index: usize,
 }
 
@@ -325,6 +428,17 @@ impl<'a> Iterator for PlayersIterator<'a> {
                 if let Some(player) = players.get(self.index).filter(|player| !player.is_null()) {
                     self.index += 1;
                     return Some(Player::new_v3(unsafe { &mut **player }));
+                }
+
+                self.index += 1;
+            }
+        }
+
+        if let Some(players) = self.players_v38.as_ref() {
+            while self.index >= 0 && self.index < 1000 {
+                if let Some(player) = players.get(self.index).filter(|player| !player.is_null()) {
+                    self.index += 1;
+                    return Some(Player::new_v38(unsafe { &mut **player }));
                 }
 
                 self.index += 1;

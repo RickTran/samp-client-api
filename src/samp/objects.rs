@@ -1,4 +1,4 @@
-use super::{v037r3 as r3, v037 as r1};
+use super::{v038 as v38, v037r3 as r3, v037 as r1};
 use super::version::{Version, version};
 
 use crate::gta::object::CObject;
@@ -7,6 +7,7 @@ use crate::gta::matrix::CVector;
 pub struct Object<'a> {
     object_v1: Option<&'a r1::CObject>,
     object_v3: Option<&'a r3::CObject>,
+    object_v38: Option<&'a v38::CObject>,
 }
 
 impl<'a> Object<'a> {
@@ -14,12 +15,22 @@ impl<'a> Object<'a> {
         Object {
             object_v1: Some(object),
             object_v3: None,
+            object_v38: None,
         }
     }
 
     fn new_v3(object: &'a r3::CObject) -> Object<'a> {
         Object {
             object_v3: Some(object),
+            object_v1: None,
+            object_v38: None,
+        }
+    }
+
+    fn new_v38(object: &'a r3::CObject) -> Object<'a> {
+        Object {
+            object_v38: Some(object),
+            object_v3: None,
             object_v1: None,
         }
     }
@@ -57,6 +68,7 @@ impl<'a> Object<'a> {
         match version() {
             Version::V037 => r1::find_object(object_id).map(|obj| Object::new_v1(obj)),
             Version::V037R3 => r3::find_object(object_id).map(|obj| Object::new_v3(obj)),
+            Version::V038 => v38::find_object(object_id).map(|obj| Object::new_v38(obj)),
             _ => None,
         }
     }
