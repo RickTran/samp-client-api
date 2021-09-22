@@ -27,7 +27,7 @@ impl<'a> Object<'a> {
         }
     }
 
-    fn new_v38(object: &'a r3::CObject) -> Object<'a> {
+    fn new_v38(object: &'a v38::CObject) -> Object<'a> {
         Object {
             object_v38: Some(object),
             object_v3: None,

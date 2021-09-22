@@ -130,6 +130,7 @@ impl<'a> Player<'a> {
         Player {
             player_v1: Some(player),
             player_v3: None,
+            player_v38: None,
         }
     }
 
@@ -137,10 +138,11 @@ impl<'a> Player<'a> {
         Player {
             player_v3: Some(player),
             player_v1: None,
+            player_v38: None,
         }
     }
     
-    fn new_v38(player: &'a r3::CPlayerInfo) -> Player<'a> {
+    fn new_v38(player: &'a v38::CPlayerInfo) -> Player<'a> {
         Player {
             player_v38: Some(player),
             player_v3: None,
